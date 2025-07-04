@@ -2,7 +2,7 @@ FROM eclipse-temurin:21-jdk-jammy AS build
 
 WORKDIR /workspace
 
-COPY gradlew build.gradle setting.gradle ./
+COPY gradlew build.gradle settings.gradle ./
 COPY gradle/ gradle/
 
 RUN ./gradlew dependencies --no-daemon
