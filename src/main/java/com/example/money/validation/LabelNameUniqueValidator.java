@@ -27,8 +27,8 @@ public class LabelNameUniqueValidator implements ConstraintValidator<LabelNameUn
         HttpSession session = request.getSession(false);
         Integer userIdInt = (Integer) session.getAttribute("userIdInt");
 
-        Long labelCount = labelRepository.existsByLabel(labelForm.label_name(),userIdInt);
-        if (labelCount == 1){
+        Boolean labelExists = labelRepository.existsByLabel(labelForm.label_name(),userIdInt);
+        if (labelExists){
             return false;
         }
 

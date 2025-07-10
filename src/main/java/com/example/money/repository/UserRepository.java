@@ -17,7 +17,7 @@ public interface UserRepository extends JpaRepository<User,Integer> {
 
     //同名のユーザーの場合1(TRUE)を返す
     @Query(value="SELECT EXISTS(SELECT 1 FROM users WHERE user_name = :user_name)", nativeQuery = true)
-    Long existsByUser(@Param("user_name") String user_name);
+    Boolean existsByUser(@Param("user_name") String user_name);
 
     @Query(value="SELECT user_password FROM users WHERE user_name = :user_name",nativeQuery = true)
     String user_password(@Param("user_name") String user_name);

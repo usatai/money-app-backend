@@ -11,6 +11,6 @@ import java.util.Date;
 @Repository
 public interface MoneyRepository extends JpaRepository<Money,Integer> {
 
-    @Query(value = "select label_id from label where user_id = :userIdInt and label_name = :label_name and DATE_FORMAT(create_date,'%Y-%m') = DATE_FORMAT(:create_date,'%Y-%m')",nativeQuery = true)
+    @Query(value = "select label_id from label where user_id = :userIdInt and label_name = :label_name and TO_CHAR(create_date,'YYYY-MM') = TO_CHAR(:create_date,'YYYY-MM')",nativeQuery = true)
     Integer userGetLabelId(@Param("userIdInt")Integer userIdInt,@Param("label_name")String user_label,@Param("create_date") Date sqlDate);
 }

@@ -18,8 +18,8 @@ public class UserNameUniqueValidator implements ConstraintValidator<UserNameUniq
             return true;
         }
 
-        Long userCount = userRepository.existsByUser(user_name);
-        if (userCount == 1) {
+        Boolean userExists = userRepository.existsByUser(user_name);
+        if (userExists) {
             return false;
         }
 
