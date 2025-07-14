@@ -1,7 +1,5 @@
 package com.example.money.controller;
 
-import com.example.money.model.Label;
-import com.example.money.model.Money;
 import com.example.money.service.LabelService;
 import com.example.money.service.MoneyService;
 import com.example.money.service.UserService;
@@ -55,7 +53,7 @@ public class LoginController {
 
         //バリデーションメッセージ
         if(!model.containsAttribute("moneyForm")){
-            model.addAttribute("moneyForm",new MoneyForm(null,null,userIdInt,null));
+            model.addAttribute("moneyForm",new MoneyForm(null,null,null,userIdInt,null));
         }
 
         String now = (String) session.getAttribute("now");
@@ -98,13 +96,9 @@ public class LoginController {
         LocalDate localDate = LocalDate.now();
         String now = localDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        //labelテーブル全件抽出
-        List<Label> labelTable = labelService.search();
         //ユーザーIDが一致するlabel_nameを抽出し、新たなリストに入れる
         List<String> labelList = labelService.getLabelNamesAndMonth(userIdInt,currentYear,currentMonth);
 
-        //moneyテーブル全件を抽出
-        List<Money> moneyTable = moneyService.searchAll();
         //各ユーザーの月毎のmoney_priceを取得する
         Map<String,Integer> moneyMap = moneyService.getMoneyListAndMonth(userIdInt,currentYear,currentMonth);
         //money_priceに入っていないデータはデフォルトで0円としてリストに追加する
