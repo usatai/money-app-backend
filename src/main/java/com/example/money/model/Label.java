@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
+import com.example.money.enums.IncomeExpenditureType;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -27,5 +29,9 @@ public class Label {
 
     @Column(name="create_date")
     private Date create_date;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name="income_expenditure_type")
+    private IncomeExpenditureType incomeExpenditureType;
 
 }

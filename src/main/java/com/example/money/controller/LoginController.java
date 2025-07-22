@@ -1,5 +1,6 @@
 package com.example.money.controller;
 
+import com.example.money.enums.IncomeExpenditureType;
 import com.example.money.service.LabelService;
 import com.example.money.service.MoneyService;
 import com.example.money.service.UserService;
@@ -43,7 +44,7 @@ public class LoginController {
     }
 
     @GetMapping("money")
-    public ResponseEntity<?> money(Model model, HttpSession session) {
+    public ResponseEntity<?> money(@RequestParam(name="type",required = false)IncomeExpenditureType type,Model model, HttpSession session) {
         Integer userIdInt = (Integer) session.getAttribute("userIdInt");
 
         //URLからの直接ログインを防ぐ
@@ -64,7 +65,7 @@ public class LoginController {
         Integer currentMonth = (Integer) session.getAttribute("currentMonth");
 
         //ユーザーIDが一致するlabel_nameを抽出し、新たなリストに入れる
-        List<String> userLabel = labelService.getUserOfLabel(userIdInt,monthDate,currentMonth);
+        List<String> userLabel = labelService.getUserOfLabel(userIdInt,monthDate,currentMonth,type);
 
         return ResponseEntity.ok(Map.of(
                 "now",now,
@@ -76,12 +77,11 @@ public class LoginController {
 
     @GetMapping("main")
     public ResponseEntity<?> mainBack(@RequestParam(name="selectMonth",required = false) String monthList,
+                                      @RequestParam(name="type",required = false) IncomeExpenditureType type,
                                       Model model,
                                       HttpSession session) {
 
         Integer userIdInt = (Integer) session.getAttribute("userIdInt");
-
-        System.out.println(userIdInt);
 
         //URLからの直接ログインを防ぐ
         if(userIdInt == null){
@@ -97,10 +97,10 @@ public class LoginController {
         String now = localDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         //ユーザーIDが一致するlabel_nameを抽出し、新たなリストに入れる
-        List<String> labelList = labelService.getLabelNamesAndMonth(userIdInt,currentYear,currentMonth);
+        List<String> labelList = labelService.getLabelNamesAndMonth(userIdInt,currentYear,currentMonth,type);
 
         //各ユーザーの月毎のmoney_priceを取得する
-        Map<String,Integer> moneyMap = moneyService.getMoneyListAndMonth(userIdInt,currentYear,currentMonth);
+        Map<String,Integer> moneyMap = moneyService.getMoneyListAndMonth(userIdInt,currentYear,currentMonth,type);
         //money_priceに入っていないデータはデフォルトで0円としてリストに追加する
         List<Integer> moneyList = labelList.stream()
                 .map(label -> moneyMap.getOrDefault(label,0))
@@ -108,10 +108,10 @@ public class LoginController {
 
         //現在の月と同じ月のデータを抽出
         //moneyテーブルを全件抽出
-        List<String> moneyDate = moneyService.getMoneyDate(userIdInt,currentYear,currentMonth);
+        List<String> moneyDate = moneyService.getMoneyDate(userIdInt,currentYear,currentMonth,type);
 
         //各ユーザーのmoney_priceがある日時を年月ごとに取得し、その日時ごとのmoney_priceの合計を取得
-        Map<Integer,Integer> moneyNowMap = moneyService.getMoneyMonthOfDaySumming(userIdInt,currentYear,currentMonth);
+        Map<Integer,Integer> moneyNowMap = moneyService.getMoneyMonthOfDaySumming(userIdInt,currentYear,currentMonth,type);
 
         //そのMapのvalue(日時ごとの合計数値)を新たなリストに追加
         List<Integer> moneyNowList = new ArrayList<>(moneyNowMap.values());

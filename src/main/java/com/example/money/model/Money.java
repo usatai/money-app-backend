@@ -27,7 +27,7 @@ public class Money {
     private int money_price;
 
     @Enumerated(EnumType.STRING)
-    @Column(name="incomeExpenditure_type")
+    @Column(name="income_expenditure_type")
     private IncomeExpenditureType incomeExpenditureType;
 
     @Column(name="user_id")

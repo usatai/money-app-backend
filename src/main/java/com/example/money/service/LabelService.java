@@ -2,6 +2,7 @@ package com.example.money.service;
 
 import com.example.money.controller.DeleteForm;
 import com.example.money.controller.LabelForm;
+import com.example.money.enums.IncomeExpenditureType;
 import com.example.money.model.Label;
 import com.example.money.repository.LabelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +21,11 @@ public class LabelService {
     LabelRepository labelrepository;
 
     //各ユーザーのラベルを月毎に取得
-    public List<String> getLabelNamesAndMonth(int userIdInt,int currentYear,int currentMonth){
+    public List<String> getLabelNamesAndMonth(int userIdInt,int currentYear,int currentMonth,IncomeExpenditureType type){
        List<Label> labelTable = labelrepository.findAll();
        return labelTable.stream()
                .filter(label -> label.getUser_id() == userIdInt)
+               .filter(label -> label.getIncomeExpenditureType() == type)
                .filter(date ->{
                     LocalDate createDate = date.getCreate_date().toInstant()
                             .atZone(ZoneId.systemDefault())
@@ -39,10 +41,11 @@ public class LabelService {
     }
 
     //ユーザーIDが一致するlabel_nameを抽出し、新たなリストに入れる
-    public List<String> getUserOfLabel(int userIdInt,int monthDate,Integer currentMonth){
+    public List<String> getUserOfLabel(int userIdInt,int monthDate,Integer currentMonth,IncomeExpenditureType type){
         List<Label> labelTable = labelrepository.findAll();
         return labelTable.stream()
                 .filter(label -> label.getUser_id() == userIdInt)
+                .filter(label -> label.getIncomeExpenditureType() == type)
                 .filter(date ->{
                     LocalDate createDate = date.getCreate_date().toInstant()
                             .atZone(ZoneId.systemDefault())
@@ -69,6 +72,7 @@ public class LabelService {
 
         label.setLabel_name(labelForm.label_name());
         label.setUser_id(userIdInt);
+        label.setIncomeExpenditureType(labelForm.type());
 
         LocalDate localDate = now.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         YearMonth dateYearMonth = YearMonth.from(localDate);

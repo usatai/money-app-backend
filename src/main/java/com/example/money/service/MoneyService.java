@@ -1,6 +1,7 @@
 package com.example.money.service;
 
 import com.example.money.controller.MoneyForm;
+import com.example.money.enums.IncomeExpenditureType;
 import com.example.money.model.Label;
 import com.example.money.model.Money;
 import com.example.money.repository.LabelRepository;
@@ -30,43 +31,52 @@ public class MoneyService {
     String currentMonth = nowDate.getYear() + "-" + nowDate.getMonthValue();
 
     //各ユーザーの月ごとのmoney_priceをlabelTableのlabel_idと紐付けて取得
-    public Map<String,Integer> getMoneyListAndMonth(int userIdInt,int currentYear,int currentMonth){
+    public Map<String,Integer> getMoneyListAndMonth(int userIdInt,int currentYear,int currentMonth,IncomeExpenditureType type){
         List<Money> moneyTable = moneyrepository.findAll();
         List<Label> labelTable = labelRepository.findAll();
         return moneyTable.stream()
-                .filter(money -> money.getUser_id() == userIdInt)
-                .filter(date ->{
-                    LocalDate createDate = date.getCreate_date().toInstant()
+                .filter(money -> {
+                    // ユーザーIDのフィルター
+                    boolean userMatch = money.getUser_id() == userIdInt;
+                    return userMatch;
+                })
+                .filter(money -> {
+                    IncomeExpenditureType moneyType = money.getIncomeExpenditureType();
+                    boolean typeMatch = (moneyType != null) && (moneyType == type); // nullチェックを追加
+                    return typeMatch;
+                })
+                .filter(money -> {
+                    // 年月のフィルター
+                    LocalDate createDate = money.getCreate_date().toInstant()
                             .atZone(ZoneId.systemDefault())
                             .toLocalDate();
 
                     int createYear = createDate.getYear();
                     int createMonth = createDate.getMonthValue();
 
-                    return createYear == currentYear && createMonth == currentMonth;
+                    boolean dateMatch = createYear == currentYear && createMonth == currentMonth;
+                    return dateMatch;
                 })
-                //新たなストリームを生成し、labelテーブルとmoneyテーブルのlabel_idを紐づけたデータを抽出し
                 .flatMap(money -> labelTable.stream()
                         .filter(label -> label.getLabel_id() == money.getLabel_id())
-                        //mapでAbstractMap.SimpleEntryにキーと値のペアの型に変換
-                        .map(label -> new AbstractMap.SimpleEntry<>(label.getLabel_name(),money.getMoney_price()))
+                        .map(label -> new AbstractMap.SimpleEntry<>(label.getLabel_name(), money.getMoney_price()))
                 )
-                //キーをグループ化し、キーの値を合計する
                 .collect(Collectors.groupingBy(
                         AbstractMap.SimpleEntry::getKey,
                         Collectors.summingInt(AbstractMap.SimpleEntry::getValue)
                 ));
-    }
+            }
 
     //money_priceが存在している各月毎の日時を取得
-    public List<String> getMoneyDate(int userIdInt,int currentYear,int currentMonth){
+    public List<String> getMoneyDate(int userIdInt,int currentYear,int currentMonth,IncomeExpenditureType type){
         List<Money> moneyTable = moneyrepository.findAll();
         return moneyTable.stream()
-                .filter(date -> date.getUser_id() == userIdInt)
+                .filter(money -> money.getUser_id() == userIdInt)
+                .filter(money -> money.getIncomeExpenditureType() == type)
                 //その抽出したデータのcreate_date(日付)を取得
                 .map(Money::getCreate_date)
-                .map(date -> date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
-                .filter(date -> date.getYear() == currentYear && date.getMonthValue() == currentMonth)
+                .map(money -> money.toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
+                .filter(money -> money.getYear() == currentYear && money.getMonthValue() == currentMonth)
                 .distinct()
                 .sorted()
                 .map(formatter::format)
@@ -74,12 +84,13 @@ public class MoneyService {
     }
 
     //各ユーザーのmoney_priceが入っている年月データを取得し、その年月の日時ごとにmoney_priceを合計した数値を取得
-    public Map<Integer,Integer> getMoneyMonthOfDaySumming(int userIdInt,int currentYear,int currentMonth){
+    public Map<Integer,Integer> getMoneyMonthOfDaySumming(int userIdInt,int currentYear,int currentMonth,IncomeExpenditureType type){
         List<Money> moneyTable = moneyrepository.findAll();
         return moneyTable.stream()
-                .filter(date -> date.getUser_id() == userIdInt)
-                .filter(date ->{
-                    LocalDate createDate = date.getCreate_date().toInstant()
+                .filter(money -> money.getUser_id() == userIdInt)
+                .filter(money -> money.getIncomeExpenditureType() == type)
+                .filter(money ->{
+                    LocalDate createDate = money.getCreate_date().toInstant()
                             .atZone(ZoneId.systemDefault())
                             .toLocalDate();
                     int createYear = createDate.getYear();
@@ -88,8 +99,8 @@ public class MoneyService {
                     return createYear == currentYear && createMonth == currentMonth;
                 })
                 .collect(Collectors.groupingBy(
-                        date -> {
-                            LocalDate createDate = date.getCreate_date().toInstant()
+                        money -> {
+                            LocalDate createDate = money.getCreate_date().toInstant()
                                     .atZone(ZoneId.systemDefault())
                                     .toLocalDate();
                             return createDate.getDayOfMonth();
