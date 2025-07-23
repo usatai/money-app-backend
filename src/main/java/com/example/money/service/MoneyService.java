@@ -156,6 +156,7 @@ public class MoneyService {
         Date sqlDate = Date.valueOf(date);
 
         money.setMoney_price(moneyForm.money_price());
+        System.out.println(moneyForm.incomeExpenditureType());
         money.setIncomeExpenditureType(moneyForm.incomeExpenditureType());
         money.setUser_id(userIdInt);
         money.setLabel_id(userGetLabelId(userIdInt,moneyForm.label_name(),sqlDate));

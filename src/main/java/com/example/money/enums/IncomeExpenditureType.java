@@ -24,6 +24,10 @@ public enum IncomeExpenditureType {
             if (type.displayValue.equals(text)) { 
                 return type;
             }
+
+            if (type.name().equalsIgnoreCase(text)) {
+                return type;
+            }
         }
         throw new IllegalArgumentException("Unknown income/expenditure type: " + text);
     } 

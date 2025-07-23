@@ -77,7 +77,6 @@ public class UserController {
     @GetMapping("check-auth")
     public ResponseEntity<?> checkAuth(HttpSession session){
         Integer userIdInt = (Integer)session.getAttribute("userIdInt");
-        System.out.println(userIdInt);
         if(userIdInt == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
         }
