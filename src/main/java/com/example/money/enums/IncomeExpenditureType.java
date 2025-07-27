@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum IncomeExpenditureType {
     INCOME("収入"),
-    EXPENDITURE("支出");
+    EXPENDITURE("支出"),
+    TOTAL("収支合計");
 
     private final String displayValue;
 

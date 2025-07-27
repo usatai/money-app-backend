@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -22,22 +23,26 @@ public class LabelService {
 
     //各ユーザーのラベルを月毎に取得
     public List<String> getLabelNamesAndMonth(int userIdInt,int currentYear,int currentMonth,IncomeExpenditureType type){
+        if (type == IncomeExpenditureType.TOTAL) {
+            return Collections.emptyList();
+        }
+
        List<Label> labelTable = labelrepository.findAll();
        return labelTable.stream()
-               .filter(label -> label.getUser_id() == userIdInt)
-               .filter(label -> label.getIncomeExpenditureType() == type)
-               .filter(date ->{
-                    LocalDate createDate = date.getCreate_date().toInstant()
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDate();
+            .filter(label -> label.getUser_id() == userIdInt)
+            .filter(label -> label.getIncomeExpenditureType() == type)
+            .filter(date ->{
+                LocalDate createDate = date.getCreate_date().toInstant()
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate();
 
-                    int createYear = createDate.getYear();
-                    int createMonth = createDate.getMonthValue();
+                int createYear = createDate.getYear();
+                int createMonth = createDate.getMonthValue();
 
-                    return createYear == currentYear && createMonth == currentMonth;
-                })
-               .map(Label::getLabel_name)
-               .toList();
+                return createYear == currentYear && createMonth == currentMonth;
+            })
+            .map(Label::getLabel_name)
+            .toList();
     }
 
     //ユーザーIDが一致するlabel_nameを抽出し、新たなリストに入れる

@@ -34,41 +34,80 @@ public class MoneyService {
     public Map<String,Integer> getMoneyListAndMonth(int userIdInt,int currentYear,int currentMonth,IncomeExpenditureType type){
         List<Money> moneyTable = moneyrepository.findAll();
         List<Label> labelTable = labelRepository.findAll();
-        return moneyTable.stream()
-                .filter(money -> {
-                    // ユーザーIDのフィルター
-                    boolean userMatch = money.getUser_id() == userIdInt;
-                    return userMatch;
-                })
-                .filter(money -> {
-                    IncomeExpenditureType moneyType = money.getIncomeExpenditureType();
-                    boolean typeMatch = (moneyType != null) && (moneyType == type); // nullチェックを追加
-                    return typeMatch;
-                })
-                .filter(money -> {
-                    // 年月のフィルター
-                    LocalDate createDate = money.getCreate_date().toInstant()
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDate();
+        
+        // TOTALの場合は全体の収支合計のみを返す
+        if (type == IncomeExpenditureType.TOTAL) {
+            int totalAmount = moneyTable.stream()
+                    .filter(money -> {
+                        // ユーザーIDのフィルター
+                        boolean userMatch = money.getUser_id() == userIdInt;
+                        return userMatch;
+                    })
+                    .filter(money -> {
+                        // 年月のフィルター
+                        LocalDate createDate = money.getCreate_date().toInstant()
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate();
 
-                    int createYear = createDate.getYear();
-                    int createMonth = createDate.getMonthValue();
+                        int createYear = createDate.getYear();
+                        int createMonth = createDate.getMonthValue();
 
-                    boolean dateMatch = createYear == currentYear && createMonth == currentMonth;
-                    return dateMatch;
-                })
-                .flatMap(money -> labelTable.stream()
-                        .filter(label -> label.getLabel_id() == money.getLabel_id())
-                        .map(label -> new AbstractMap.SimpleEntry<>(label.getLabel_name(), money.getMoney_price()))
-                )
-                .collect(Collectors.groupingBy(
-                        AbstractMap.SimpleEntry::getKey,
-                        Collectors.summingInt(AbstractMap.SimpleEntry::getValue)
-                ));
-            }
+                        boolean dateMatch = createYear == currentYear && createMonth == currentMonth;
+                        return dateMatch;
+                    })
+                    .mapToInt(money -> {
+                        // 収入の場合は正の値、支出の場合は負の値として扱う
+                        return money.getIncomeExpenditureType() == IncomeExpenditureType.INCOME 
+                            ? money.getMoney_price() 
+                            : -money.getMoney_price();
+                    })
+                    .sum();
+            
+            Map<String, Integer> result = new HashMap<>();
+            result.put("収支合計", totalAmount);
+            return result;
+        } else {
+            // INCOME または EXPENDITURE の場合は従来通りの処理
+            return moneyTable.stream()
+                    .filter(money -> {
+                        // ユーザーIDのフィルター
+                        boolean userMatch = money.getUser_id() == userIdInt;
+                        return userMatch;
+                    })
+                    .filter(money -> {
+                        IncomeExpenditureType moneyType = money.getIncomeExpenditureType();
+                        boolean typeMatch = (moneyType != null) && (moneyType == type); // nullチェックを追加
+                        return typeMatch;
+                    })
+                    .filter(money -> {
+                        // 年月のフィルター
+                        LocalDate createDate = money.getCreate_date().toInstant()
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate();
+
+                        int createYear = createDate.getYear();
+                        int createMonth = createDate.getMonthValue();
+
+                        boolean dateMatch = createYear == currentYear && createMonth == currentMonth;
+                        return dateMatch;
+                    })
+                    .flatMap(money -> labelTable.stream()
+                            .filter(label -> label.getLabel_id() == money.getLabel_id())
+                            .map(label -> new AbstractMap.SimpleEntry<>(label.getLabel_name(), money.getMoney_price()))
+                    )
+                    .collect(Collectors.groupingBy(
+                            AbstractMap.SimpleEntry::getKey,
+                            Collectors.summingInt(AbstractMap.SimpleEntry::getValue)
+                    ));
+        }
+    }
 
     //money_priceが存在している各月毎の日時を取得
     public List<String> getMoneyDate(int userIdInt,int currentYear,int currentMonth,IncomeExpenditureType type){
+        if (type == IncomeExpenditureType.TOTAL) {
+            return Collections.emptyList();
+        }
+
         List<Money> moneyTable = moneyrepository.findAll();
         return moneyTable.stream()
                 .filter(money -> money.getUser_id() == userIdInt)

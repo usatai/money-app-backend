@@ -101,10 +101,23 @@ public class LoginController {
 
         //各ユーザーの月毎のmoney_priceを取得する
         Map<String,Integer> moneyMap = moneyService.getMoneyListAndMonth(userIdInt,currentYear,currentMonth,type);
-        //money_priceに入っていないデータはデフォルトで0円としてリストに追加する
-        List<Integer> moneyList = labelList.stream()
-                .map(label -> moneyMap.getOrDefault(label,0))
-                .toList();
+        
+        List<Integer> moneyList;
+        List<String> finalLabelList;
+        
+        // TOTALの場合は収支合計のみを扱う
+        if (type == IncomeExpenditureType.TOTAL) {
+            // 収支合計の値のみを取得
+            Integer totalAmount = moneyMap.get("収支合計");
+            moneyList = List.of(totalAmount != null ? totalAmount : 0);
+            finalLabelList = List.of("収支合計");
+        } else {
+            //money_priceに入っていないデータはデフォルトで0円としてリストに追加する
+            moneyList = labelList.stream()
+                    .map(label -> moneyMap.getOrDefault(label,0))
+                    .toList();
+            finalLabelList = labelList;
+        }
 
         //現在の月と同じ月のデータを抽出
         //moneyテーブルを全件抽出
@@ -114,7 +127,13 @@ public class LoginController {
         Map<Integer,Integer> moneyNowMap = moneyService.getMoneyMonthOfDaySumming(userIdInt,currentYear,currentMonth,type);
 
         //そのMapのvalue(日時ごとの合計数値)を新たなリストに追加
-        List<Integer> moneyNowList = new ArrayList<>(moneyNowMap.values());
+        List<Integer> moneyNowList;
+        if (type == IncomeExpenditureType.TOTAL) {
+            // TOTALの場合は空配列を返す
+            moneyNowList = new ArrayList<>();
+        } else {
+            moneyNowList = new ArrayList<>(moneyNowMap.values());
+        }
 
         //各ユーザーのデータのある年月を取得
         List<String> userMonthList = moneyService.getUserOfDateList(userIdInt);
@@ -139,7 +158,7 @@ public class LoginController {
             "moneyNowList", moneyNowList,
             "moneyDate", moneyDate,
             "moneyList", moneyList,
-            "labelList", labelList,
+            "labelList", finalLabelList,
             "userMonthList", userMonthList,
             "monthDate", currentDate,
             "moneySum", moneySum
