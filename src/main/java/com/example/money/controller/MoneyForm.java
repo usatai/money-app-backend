@@ -10,7 +10,9 @@ public record MoneyForm(
         IncomeExpenditureType incomeExpenditureType,
         @NotNull(message = "金額を入力してください")
         Integer money_price,
-        Integer user_id
+        Integer user_id,
+        String now,
+        String yearDate
         
 ) {
 }

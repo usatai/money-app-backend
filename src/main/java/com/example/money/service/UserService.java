@@ -59,4 +59,8 @@ public class UserService {
         return userRepository.user_password(user_name);
     }
 
+    public Optional<Integer> getUserIdByUsername(String user_name) {
+        return userRepository.user_id(user_name);
+    }
+
 }

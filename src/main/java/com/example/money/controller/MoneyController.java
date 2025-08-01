@@ -4,7 +4,10 @@ import com.example.money.service.MoneyService;
 import com.example.money.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +35,15 @@ public class MoneyController {
             return ResponseEntity.badRequest().body(Map.of("errors",errorMessage));
         }
 
-        Integer userIdInt = (Integer)session.getAttribute("userIdInt");
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+    
+        String username = authentication.getName(); // トークン内のユーザー名
+        Integer userIdInt = userService.getUserIdByUsername(username)
+            .orElseThrow(() -> new RuntimeException("ユーザーIDが見つかりません: " + username));
 
         moneyService.moneyInput(moneyForm,userIdInt);
 

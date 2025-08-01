@@ -6,7 +6,10 @@ import com.example.money.service.MoneyService;
 import com.example.money.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,32 +47,34 @@ public class LoginController {
     }
 
     @GetMapping("money")
-    public ResponseEntity<?> money(@RequestParam(name="type",required = false)IncomeExpenditureType type,Model model, HttpSession session) {
-        Integer userIdInt = (Integer) session.getAttribute("userIdInt");
+    public ResponseEntity<?> money(@RequestParam(name="type",required = false)IncomeExpenditureType type,
+                                   @RequestParam (name = "nowDate")String nowDate, @RequestParam (name = "currentMonth")Integer currentMonth, Model model) {
 
-        //URLからの直接ログインを防ぐ
-        if(userIdInt == null){
-            return ResponseEntity.badRequest().body(Map.of("errors","URLからの直接ログインはできません。"));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
         }
+    
+        String username = authentication.getName(); // トークン内のユーザー名
+        Integer userIdInt = userService.getUserIdByUsername(username)
+            .orElseThrow(() -> new RuntimeException("ユーザーIDが見つかりません: " + username));
 
         //バリデーションメッセージ
         if(!model.containsAttribute("moneyForm")){
-            model.addAttribute("moneyForm",new MoneyForm(null,null,null,userIdInt,null));
+            model.addAttribute("moneyForm",new MoneyForm(null,null,null,userIdInt,null,null,null));
         }
 
-        String now = (String) session.getAttribute("now");
-        YearMonth yearMonth = (YearMonth) session.getAttribute("currentDate");
-        String formatYearMonth = yearMonth.toString();
+        System.out.println("日付" + currentMonth);
+        String now = nowDate;
         LocalDate currentDate = LocalDate.now();
         int monthDate = currentDate.getMonthValue();
-        Integer currentMonth = (Integer) session.getAttribute("currentMonth");
 
         //ユーザーIDが一致するlabel_nameを抽出し、新たなリストに入れる
         List<String> userLabel = labelService.getUserOfLabel(userIdInt,monthDate,currentMonth,type);
 
         return ResponseEntity.ok(Map.of(
                 "now",now,
-                "formatYearMonth",formatYearMonth,
                 "userIdInt",userIdInt,
                 "userLabel",userLabel
         ));
@@ -81,26 +86,27 @@ public class LoginController {
                                       Model model,
                                       HttpSession session) {
 
-        Integer userIdInt = (Integer) session.getAttribute("userIdInt");
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        //URLからの直接ログインを防ぐ
-        if(userIdInt == null){
-            return ResponseEntity.badRequest().body(Map.of("errors","URLからの直接ログインはできません。"));
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
         }
+    
+        String username = authentication.getName(); // トークン内のユーザー名
+        Integer userIdInt = userService.getUserIdByUsername(username)
+            .orElseThrow(() -> new RuntimeException("ユーザーIDが見つかりません: " + username));
 
         final DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-M");
         final YearMonth currentDate = (monthList != null) ? YearMonth.parse(monthList,format) : YearMonth.now();
         int currentYear = currentDate.getYear();
         int currentMonth = currentDate.getMonthValue();
 
-        LocalDate localDate = LocalDate.now();
-        String now = localDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
         //ユーザーIDが一致するlabel_nameを抽出し、新たなリストに入れる
         List<String> labelList = labelService.getLabelNamesAndMonth(userIdInt,currentYear,currentMonth,type);
 
         //各ユーザーの月毎のmoney_priceを取得する
         Map<String,Integer> moneyMap = moneyService.getMoneyListAndMonth(userIdInt,currentYear,currentMonth,type);
+        System.out.println(moneyMap);
         
         List<Integer> moneyList;
         List<String> finalLabelList;
@@ -109,6 +115,7 @@ public class LoginController {
         if (type == IncomeExpenditureType.TOTAL) {
             // 収支合計の値のみを取得
             Integer totalAmount = moneyMap.get("収支合計");
+            System.out.println(totalAmount);
             moneyList = List.of(totalAmount != null ? totalAmount : 0);
             finalLabelList = List.of("収支合計");
         } else {
@@ -148,11 +155,6 @@ public class LoginController {
         int moneySum = moneyList.stream()
                 .mapToInt(money -> money)
                 .sum();
-
-        session.setAttribute("now",now);
-        session.setAttribute("currentDate",currentDate);
-        session.setAttribute("currentMonth",currentMonth);
-        session.setAttribute("userIdInt", userIdInt);
 
         return ResponseEntity.ok(Map.of(
             "moneyNowList", moneyNowList,
