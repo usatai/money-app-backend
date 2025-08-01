@@ -62,8 +62,17 @@ public class LabelController {
             return ResponseEntity.badRequest().body(Map.of("errors",errorMessage));
         }
 
-        Integer userIdInt = (Integer)session.getAttribute("userIdInt");
-        YearMonth yearMonth = (YearMonth) session.getAttribute("currentDate");
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+    
+        String username = authentication.getName(); // トークン内のユーザー名
+        Integer userIdInt = userService.getUserIdByUsername(username)
+            .orElseThrow(() -> new RuntimeException("ユーザーIDが見つかりません: " + username));
+        YearMonth yearMonth = deleteForm.currentDate();
+
         String yearMonthSt = yearMonth.toString();
 
         labelService.deleteLabel(userIdInt,deleteForm,yearMonthSt);
