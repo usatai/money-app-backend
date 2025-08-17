@@ -46,6 +46,7 @@ public class LabelController {
         String username = authentication.getName(); // トークン内のユーザー名
         Integer userIdInt = userService.getUserIdByUsername(username)
             .orElseThrow(() -> new RuntimeException("ユーザーIDが見つかりません: " + username));
+        System.out.println("ユーザーID" + userIdInt);
         YearMonth yearMonth = labelForm.currentDate();
 
         labelService.input(labelForm,userIdInt,yearMonth);

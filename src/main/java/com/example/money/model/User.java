@@ -6,6 +6,8 @@ import lombok.Data;
 
 import java.util.Date;
 
+import org.springframework.data.domain.Persistable;
+
 @Entity
 @Data
 @Table(name = "user")
@@ -14,7 +16,10 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="user_id")
-    private int user_id;
+    private Integer user_id;
+
+    @Transient
+    private boolean newEntity = false;
 
     @Column(name="user_name")
     private String user_name;
@@ -27,5 +32,8 @@ public class User {
 
     @Column(name="create_date")
     private Date create_date;
+
+    @Column(name = "expires_at")
+    private Date expires_at;
 
 }

@@ -1,26 +1,45 @@
 package com.example.money.service;
 
+import com.example.money.controller.GestLoginUserForm;
+import com.example.money.controller.GuestIdSequenceDao;
 import com.example.money.controller.LoginForm;
 import com.example.money.controller.UserForm;
+import com.example.money.model.GestUser;
 import com.example.money.model.User;
+import com.example.money.repository.GestUserRepository;
 import com.example.money.repository.MoneyRepository;
 import com.example.money.repository.UserRepository;
 import com.example.money.security.PasswordUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class UserService {
 
-    @Autowired
-    UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final MoneyRepository moneyRepository;
+    private final GestUserRepository gestUserRepository;
+    private final GuestIdSequenceDao guestIdSequenceDao;
 
-    @Autowired
-    MoneyRepository moneyRepository;
+    public UserService(UserRepository userRepository,
+                       MoneyRepository moneyRepository,
+                       GestUserRepository gestUserRepository,
+                       GuestIdSequenceDao guestIdSequenceDao) {
+        this.userRepository = userRepository;
+        this.moneyRepository = moneyRepository;
+        this.gestUserRepository = gestUserRepository;
+        this.guestIdSequenceDao = guestIdSequenceDao;
+    }
 
     public List<User> searchAll(){
         return userRepository.findAll();
@@ -30,11 +49,33 @@ public class UserService {
         return userRepository.findById(id);
     }
 
+    @Transactional
     public void save(UserForm userForm){
-        userRepository.save(CreateUser(userForm));
+        userRepository.save(createUser(userForm));
     }
 
-    private User CreateUser(UserForm userForm) {
+    @Transactional
+    public User gestUserSave(GestLoginUserForm gestLoginUserForm) {
+        // int positive = guestIdSequenceDao.nextPositive();
+
+        // int guestId = -positive;
+
+        Date now = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(now);
+        cal.add(Calendar.MINUTE, 60); // ★ 1時間
+        Date expires = cal.getTime();
+
+        User gestUser = new User();
+        // gestUser.setUser_id(guestId);
+        gestUser.setUser_name(gestLoginUserForm.gestLoginUserName());
+        gestUser.setCreate_date(now);
+        gestUser.setExpires_at(expires);
+        
+        return userRepository.save(gestUser);
+    }
+
+    private User createUser(UserForm userForm) {
         Date now = new Date();
         String hashedPassword = PasswordUtil.hashPassword(userForm.user_password());
 
@@ -43,8 +84,17 @@ public class UserService {
         user.setUser_email(userForm.user_email());
         user.setUser_password(hashedPassword);
         user.setCreate_date(now);
+        user.setExpires_at(null);
 
         return user;
+    }
+
+    // ゲストユーザー定期削除
+    @Scheduled(cron = "0 */5 * * * *", zone = "Asia/Tokyo")
+    @Transactional
+    public void purgeExpiredGuests(){
+        int removed = userRepository.deleteExpired(new Date());
+        log.info("Expired gest users removed: {}", removed);
     }
 
     public Optional<Integer> getUserid(UserForm userForm){
@@ -53,6 +103,10 @@ public class UserService {
 
     public Optional<Integer> getLoginUserid(LoginForm loginForm){
         return userRepository.user_id(loginForm.loginUser_name());
+    }
+
+    public Optional<Integer> getGestUserid(GestLoginUserForm gestLoginUserForm) {
+        return gestUserRepository.gest_user_id(gestLoginUserForm.gestLoginUserName());
     }
 
     public String getUserPassword(String user_name) {

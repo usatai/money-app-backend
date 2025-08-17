@@ -5,7 +5,6 @@ import com.example.money.controller.LabelForm;
 import com.example.money.enums.IncomeExpenditureType;
 import com.example.money.model.Label;
 import com.example.money.repository.LabelRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -17,9 +16,12 @@ import java.util.List;
 
 @Service
 public class LabelService {
+    
+    private final LabelRepository labelrepository;
 
-    @Autowired
-    LabelRepository labelrepository;
+    public LabelService(LabelRepository labelRepository) {
+        this.labelrepository = labelRepository;
+    }
 
     //各ユーザーのラベルを月毎に取得
     public List<String> getLabelNamesAndMonth(int userIdInt,int currentYear,int currentMonth,IncomeExpenditureType type){

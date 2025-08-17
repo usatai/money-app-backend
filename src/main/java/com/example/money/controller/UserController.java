@@ -49,9 +49,9 @@ public class UserController {
             var userId = userService.getUserid(userForm);
             Integer userIdInt = userId.orElse(null);
 
-            session.setAttribute("userIdInt", userIdInt);
+            String token = jwtUtil.generateToken(userForm.user_name());
 
-            return ResponseEntity.ok(Map.of("message","User registered successfully", "userId", userIdInt));
+            return ResponseEntity.ok(Map.of("message","User registered successfully", "userId", userIdInt,"token",token));
         }
     }
 
@@ -71,14 +71,30 @@ public class UserController {
 
         //ユーザー識別情報取得
         var userId = userService.getLoginUserid(loginForm);
-        System.out.println(userId);
         Integer userIdInt = userId.orElse(null);
 
-        session.setAttribute("userIdInt", userIdInt);
 
         String token = jwtUtil.generateToken(loginForm.loginUser_name());
 
         return ResponseEntity.ok(Map.of("message","Login successful","userId", userIdInt,"token",token));
+    }
+
+    //ログイン処理
+    @PostMapping("gestLogin")
+    public ResponseEntity<?> gestLogin(@RequestBody @Validated GestLoginUserForm gestUserForm, BindingResult userBindingResult,HttpServletRequest request,
+    HttpServletResponse response,HttpSession session,RedirectAttributes redirectAttributes) {
+
+        if (userBindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(userBindingResult.getAllErrors());
+        } else {
+            userService.gestUserSave(gestUserForm);
+            var userId = userService.getGestUserid(gestUserForm);
+            Integer userIdInt = userId.orElse(null);
+
+            String token = jwtUtil.generateToken(gestUserForm.gestLoginUserName());
+
+            return ResponseEntity.ok(Map.of("message","User registered successfully", "userId", userIdInt,"token",token));
+        }
     }
 
     @GetMapping("check-auth")
