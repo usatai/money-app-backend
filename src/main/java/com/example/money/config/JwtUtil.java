@@ -1,34 +1,66 @@
 package com.example.money.config;
 
+import java.security.Key;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Base64;
+import java.util.Collection;
 import java.util.Date;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtil {
-    private final String SECRET_KEY = "your-secret-key-should-be-long-and-random";
-    private final long EXPIRATION_TIME = 1000 * 60 * 30; // 30分
+    private final Key key;
+    private final long accessMinutes;
+    private final long refreshDays;
 
-    public String generateToken(String username) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + EXPIRATION_TIME);
+    public JwtUtil ( 
+        @Value("${security.jwt.secretBase64}") String secretBase64,
+        @Value("${security.jwt.accessMinutes}") long accessMinutes,
+        @Value("${{security.jwt.refreshDays}}") long refreshDays
+    ) {
+        byte[] secret = Base64.getDecoder().decode(secretBase64);
+        if (secret.length < 32) {
+            throw new IllegalArgumentException();
+        }
+        this.key = Keys.hmacShaKeyFor(secret);
+        this.accessMinutes = accessMinutes;
+        this.refreshDays = refreshDays;
+    }
 
+    public String generateAccessToken(String username,Collection<String> roles) {
+        Instant now = Instant.now();
         return Jwts.builder()
             .setSubject(username)
-            .setIssuedAt(now)
-            .setExpiration(expiryDate)
-            .signWith(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()), SignatureAlgorithm.HS256)
+            .claim("roles", roles)
+            .setIssuedAt(Date.from(now))
+            .setExpiration(Date.from(now.plus(Duration.ofMinutes(accessMinutes))))
+            .signWith(key,SignatureAlgorithm.HS256)
             .compact();
     }
 
-    public String validateTokenAndGetUsername(String token) {
+    public String generateRefreshToken(String username) {
+        Instant now = Instant.now();
+        return Jwts.builder()
+            .setSubject(username)
+            .setIssuedAt(Date.from(now))
+            .setExpiration(Date.from(now.plus(Duration.ofDays(refreshDays))))
+            .signWith(key,SignatureAlgorithm.HS256)
+            .compact();
+    }
+
+    public Jws<Claims> parse(String token) {
         return Jwts.parserBuilder()
-            .setSigningKey(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()))
+            .setSigningKey(key)
             .build()
-            .parseClaimsJws(token)
-            .getBody()
-            .getSubject();
+            .parseClaimsJws(token);
     }
 }
