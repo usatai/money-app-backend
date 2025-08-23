@@ -2,6 +2,10 @@ package com.example.money.controller;
 
 
 import com.example.money.service.UserService;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+
 import com.example.money.config.JwtUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,6 +29,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+
 
 
 @RestController
@@ -155,6 +165,26 @@ public class UserController {
         }
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@CookieValue(name = "refresh_token",required = false) String refreshToken) {
+        if (refreshToken == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        Claims claims;
+        try {
+            claims = jwtUtil.parse(refreshToken).getBody();
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String access = jwtUtil.generateAccessToken(claims.getSubject(), List.of("USER"));
+        ResponseCookie accessCookie = ResponseCookie.from("access_token", access)
+            .httpOnly(true).secure(cookieSecure).path("/")
+            .domain(cookieDomain).sameSite(cookieSameSite)
+            .maxAge(Duration.ofMinutes(jwtUtil.getAccessMinutes()))
+            .build();
+
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).body(Map.of("result","ok"));
+    }
+    
+
     @GetMapping("check-auth")
     public ResponseEntity<?> checkAuth(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -167,6 +197,18 @@ public class UserController {
         // 認証済みであればOKを返す（必要ならユーザー情報も）
         return ResponseEntity.ok("Token valid");
     }
+
+    @GetMapping("logout")
+    public ResponseEntity<?> userLogout() {
+        ResponseCookie clear1 = ResponseCookie.from("access_token","").path("/").maxAge(0).build();
+        ResponseCookie clear2 = ResponseCookie.from("refresh_token","").path("/").maxAge(0).build();
+
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, clear1.toString())
+            .header(HttpHeaders.SET_COOKIE, clear2.toString())
+            .build();
+    }
+    
 
     // Cookie生成
     private ResponseCookie createAccessCookie(String access) {
