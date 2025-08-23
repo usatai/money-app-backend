@@ -63,4 +63,7 @@ public class JwtUtil {
             .build()
             .parseClaimsJws(token);
     }
+
+    public long getAccessMinutes() { return accessMinutes; }
+    public long getRefreshDays() { return refreshDays; }
 }
