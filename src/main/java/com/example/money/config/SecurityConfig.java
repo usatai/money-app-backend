@@ -28,12 +28,12 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS設定を適用
             .csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("api/user/signup","/api/user/login", "/api/user/gestLogin")
+                .ignoringRequestMatchers("api/user/signup","/api/user/login", "/api/user/gestLogin","/api/user/refresh")
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // セッション使わない
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/", "/api/user/signup","/api/user/login","/api/user/gestLogin","/api/user/check-session").permitAll()
+                .requestMatchers("/", "/api/user/signup","/api/user/login","/api/user/gestLogin","/api/user/refresh").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);// JWT認証フィルター追加

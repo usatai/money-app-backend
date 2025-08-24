@@ -25,7 +25,7 @@ public class JwtUtil {
     public JwtUtil ( 
         @Value("${security.jwt.secretBase64}") String secretBase64,
         @Value("${security.jwt.accessMinutes}") long accessMinutes,
-        @Value("${{security.jwt.refreshDays}}") long refreshDays
+        @Value("${security.jwt.refreshDays}") long refreshDays
     ) {
         byte[] secret = Base64.getDecoder().decode(secretBase64);
         if (secret.length < 32) {
