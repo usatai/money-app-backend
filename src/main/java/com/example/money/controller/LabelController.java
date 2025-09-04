@@ -15,6 +15,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.security.Principal;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
@@ -30,20 +31,15 @@ public class LabelController {
     UserService userService;
 
     @PostMapping("/input")
-    public ResponseEntity<?> input(@RequestBody @Validated LabelForm labelForm, BindingResult bindingResult,Model model, RedirectAttributes redirectAttributes){
+    public ResponseEntity<?> input(@RequestBody @Validated LabelForm labelForm, BindingResult bindingResult,Model model, RedirectAttributes redirectAttributes,Principal principal){
         if(bindingResult.hasErrors()){
             List<String> errorMessage = bindingResult.getAllErrors().stream()
                     .map(error -> error.getDefaultMessage())
                     .toList();
             return ResponseEntity.badRequest().body(Map.of("errors",errorMessage));
         }
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
-        }
     
-        String username = authentication.getName(); // トークン内のユーザー名
+        String username = principal.getName(); // トークン内のユーザー名
         Integer userIdInt = userService.getUserIdByUsername(username)
             .orElseThrow(() -> new RuntimeException("ユーザーIDが見つかりません: " + username));
         System.out.println("ユーザーID" + userIdInt);

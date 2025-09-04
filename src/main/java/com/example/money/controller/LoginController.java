@@ -5,7 +5,6 @@ import com.example.money.service.LabelService;
 import com.example.money.service.MoneyService;
 import com.example.money.service.UserService;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
@@ -27,14 +27,15 @@ import java.util.Map;
 @RequestMapping("/api/user")
 public class LoginController {
 
-    @Autowired
-    UserService userService;
+    private final UserService userService;
+    private final LabelService labelService;
+    private final MoneyService moneyService;
 
-    @Autowired
-    LabelService labelService;
-
-    @Autowired
-    MoneyService moneyService;
+    public LoginController (UserService userService,LabelService labelService,MoneyService moneyService) {
+        this.userService = userService;
+        this.labelService = labelService;
+        this.moneyService = moneyService;
+    }
 
     @GetMapping("/")
     public String animationPage(){
@@ -46,17 +47,13 @@ public class LoginController {
         return "home";
     }
 
-    @GetMapping("money")
+    @GetMapping("/money")
     public ResponseEntity<?> money(@RequestParam(name="type",required = false)IncomeExpenditureType type,
-                                   @RequestParam (name = "nowDate")String nowDate, @RequestParam (name = "currentMonth")Integer currentMonth, Model model) {
+                                   @RequestParam (name = "nowDate")String nowDate, @RequestParam (name = "currentMonth")Integer currentMonth, Model model,Principal principal) {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
-        }
+        
+        String username = principal.getName(); // トークン内のユーザー名
     
-        String username = authentication.getName(); // トークン内のユーザー名
         Integer userIdInt = userService.getUserIdByUsername(username)
             .orElseThrow(() -> new RuntimeException("ユーザーIDが見つかりません: " + username));
 

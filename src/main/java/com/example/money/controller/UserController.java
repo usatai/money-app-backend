@@ -184,6 +184,13 @@ public class UserController {
     }
     
 
+    // @GetMapping("/csrf")
+    // public ResponseEntity<Void> getCsrfToken(HttpServletRequest request) {
+    //     // Spring Security が CookieCsrfTokenRepository によって自動で XSRF-TOKEN Cookie をセット
+    //     return ResponseEntity.ok().build();
+    // }
+
+
     @GetMapping("check-auth")
     public ResponseEntity<?> checkAuth(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -217,6 +224,7 @@ public class UserController {
             .secure(cookieSecure)
             .path("/")
             .domain(cookieDomain)
+            // .sameSite("None")   
             .maxAge(Duration.ofMinutes(jwtUtil.getAccessMinutes()))
             .build();
 

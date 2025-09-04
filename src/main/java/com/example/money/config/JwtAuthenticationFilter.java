@@ -17,7 +17,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
@@ -27,39 +26,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
-            // String authHeader = request.getHeader("Authorization");
-            String token = resolveToken(request);
-            if (token != null) {
-                try {
-                    Claims claims = jwtUtil.parse(token).getBody();
-                    String username = claims.getSubject();
-                    @SuppressWarnings("unchecked")
-                    List<String> roles = (List<String>) claims.get("roles", List.class);
-                    var auth = new UsernamePasswordAuthenticationToken(
-                            username,
-                            null,
-                            roles == null ? List.of() :
-                                    roles.stream().map(SimpleGrantedAuthority::new).toList());
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                } catch (JwtException e) {
-
-                }
-
+        // String authHeader = request.getHeader("Authorization");
+        String token = resolveToken(request);
+        // トークンが存在する場合のみ、認証処理を試みる
+        if (token != null) {
+            try {
+                Claims claims = jwtUtil.parse(token).getBody();
+                String username = claims.getSubject();
+                @SuppressWarnings("unchecked")
+                List<String> roles = (List<String>) claims.get("roles", List.class);
+                var auth = new UsernamePasswordAuthenticationToken(
+                        username,
+                        null,
+                        roles == null ? List.of() :
+                                roles.stream().map(SimpleGrantedAuthority::new).toList());
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            } catch (JwtException e) {
+                // トークンが無効な場合は、ログ出力などを行い、認証情報をクリアする
+                // これにより、認証失敗として扱われる
+                System.out.println(e.getMessage());
+                SecurityContextHolder.clearContext();
             }
-
-        // if (authHeader != null && authHeader.startsWith("Bearer ")) {
-        //     String token = authHeader.substring(7);
-        //     try {
-        //         String username = jwtUtil.validateTokenAndGetUsername(token);
-        //         UsernamePasswordAuthenticationToken authentication =
-        //             new UsernamePasswordAuthenticationToken(username, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
-        //         SecurityContextHolder.getContext().setAuthentication(authentication);
-        //     } catch (JwtException e) {
-        //         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        //         return;
-        //     }
-        // }
-
+        }
         filterChain.doFilter(request, response);
     }
 
