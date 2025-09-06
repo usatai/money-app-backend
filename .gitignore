@@ -41,3 +41,5 @@ application-prod.properties
 application-deproy.properties
 
 .DS_Store
+
+logs/
