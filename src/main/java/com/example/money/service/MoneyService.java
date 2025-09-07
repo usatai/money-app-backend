@@ -35,9 +35,10 @@ public class MoneyService {
         List<Money> moneyTable = moneyrepository.findAll();
         List<Label> labelTable = labelRepository.findAll();
         
-        // TOTALの場合は全体の収支合計のみを返す
+        // TOTALの場合は収入、支出、収支合計をそれぞれ返す
         if (type == IncomeExpenditureType.TOTAL) {
-            int totalAmount = moneyTable.stream()
+            // ユーザーIDと年月でフィルターしたデータを取得
+            List<Money> filteredMoney = moneyTable.stream()
                     .filter(money -> {
                         // ユーザーIDのフィルター
                         boolean userMatch = money.getUser_id() == userIdInt;
@@ -55,15 +56,26 @@ public class MoneyService {
                         boolean dateMatch = createYear == currentYear && createMonth == currentMonth;
                         return dateMatch;
                     })
-                    .mapToInt(money -> {
-                        // 収入の場合は正の値、支出の場合は負の値として扱う
-                        return money.getIncomeExpenditureType() == IncomeExpenditureType.INCOME 
-                            ? money.getMoney_price() 
-                            : -money.getMoney_price();
-                    })
+                    .toList();
+            
+            // 収入の合計を計算
+            int incomeAmount = filteredMoney.stream()
+                    .filter(money -> money.getIncomeExpenditureType() == IncomeExpenditureType.INCOME)
+                    .mapToInt(Money::getMoney_price)
                     .sum();
             
+            // 支出の合計を計算
+            int expenditureAmount = filteredMoney.stream()
+                    .filter(money -> money.getIncomeExpenditureType() == IncomeExpenditureType.EXPENDITURE)
+                    .mapToInt(Money::getMoney_price)
+                    .sum();
+            
+            // 収支合計を計算（収入 - 支出）
+            int totalAmount = incomeAmount - expenditureAmount;
+            
             Map<String, Integer> result = new HashMap<>();
+            result.put("収入", incomeAmount);
+            result.put("支出", expenditureAmount);
             result.put("収支合計", totalAmount);
             return result;
         } else {
