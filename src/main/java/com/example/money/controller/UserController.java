@@ -152,8 +152,6 @@ public class UserController {
             ResponseCookie accessCookie = createAccessCookie(access);
             ResponseCookie refreshCookie = createRefreshCookie(refresh);
 
-            // String token = jwtUtil.generateToken(gestUserForm.gestLoginUserName());
-
             return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())

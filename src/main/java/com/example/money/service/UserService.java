@@ -67,7 +67,6 @@ public class UserService {
         Date expires = cal.getTime();
 
         User gestUser = new User();
-        // gestUser.setUser_id(guestId);
         gestUser.setUser_name(gestLoginUserForm.gestLoginUserName());
         gestUser.setCreate_date(now);
         gestUser.setExpires_at(expires);
