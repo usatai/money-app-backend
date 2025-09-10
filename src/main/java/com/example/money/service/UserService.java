@@ -27,18 +27,12 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final MoneyRepository moneyRepository;
     private final GestUserRepository gestUserRepository;
-    private final GuestIdSequenceDao guestIdSequenceDao;
 
     public UserService(UserRepository userRepository,
-                       MoneyRepository moneyRepository,
-                       GestUserRepository gestUserRepository,
-                       GuestIdSequenceDao guestIdSequenceDao) {
+                       GestUserRepository gestUserRepository) {
         this.userRepository = userRepository;
-        this.moneyRepository = moneyRepository;
         this.gestUserRepository = gestUserRepository;
-        this.guestIdSequenceDao = guestIdSequenceDao;
     }
 
     public List<User> searchAll(){
@@ -56,10 +50,6 @@ public class UserService {
 
     @Transactional
     public User gestUserSave(GestLoginUserForm gestLoginUserForm) {
-        // int positive = guestIdSequenceDao.nextPositive();
-
-        // int guestId = -positive;
-
         Date now = new Date();
         Calendar cal = Calendar.getInstance();
         cal.setTime(now);
@@ -67,7 +57,6 @@ public class UserService {
         Date expires = cal.getTime();
 
         User gestUser = new User();
-        // gestUser.setUser_id(guestId);
         gestUser.setUser_name(gestLoginUserForm.gestLoginUserName());
         gestUser.setCreate_date(now);
         gestUser.setExpires_at(expires);

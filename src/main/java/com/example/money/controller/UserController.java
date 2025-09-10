@@ -11,7 +11,6 @@ import com.example.money.config.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-// import lombok.Value;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
@@ -38,7 +37,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/user")
-//@CrossOrigin(origins = "http://localhost:3000")
 public class UserController {
     private final JwtUtil jwtUtil;
     private final UserService userService;
@@ -151,8 +149,6 @@ public class UserController {
             // Cookie発行
             ResponseCookie accessCookie = createAccessCookie(access);
             ResponseCookie refreshCookie = createRefreshCookie(refresh);
-
-            // String token = jwtUtil.generateToken(gestUserForm.gestLoginUserName());
 
             return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
