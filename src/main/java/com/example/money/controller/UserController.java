@@ -178,14 +178,6 @@ public class UserController {
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).body(Map.of("result","ok"));
     }
-    
-
-    // @GetMapping("/csrf")
-    // public ResponseEntity<Void> getCsrfToken(HttpServletRequest request) {
-    //     // Spring Security が CookieCsrfTokenRepository によって自動で XSRF-TOKEN Cookie をセット
-    //     return ResponseEntity.ok().build();
-    // }
-
 
     @GetMapping("check-auth")
     public ResponseEntity<?> checkAuth(){
