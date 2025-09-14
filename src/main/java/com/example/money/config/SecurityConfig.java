@@ -34,7 +34,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf
                 .csrfTokenRepository(customCsrfTokenRepository())
                 .csrfTokenRequestHandler(requestHandler) // ★ リクエストハンドラーを明示的に設定
-                .ignoringRequestMatchers("api/user/signup","/api/user/gestLogin","/api/user/refresh","/api/user/csrf")
+                .ignoringRequestMatchers("api/user/signup","/api/user/gestLogin","/api/user/refresh")
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // セッション使わない
             .authorizeHttpRequests(auth -> auth
