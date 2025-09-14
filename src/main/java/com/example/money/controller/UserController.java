@@ -143,15 +143,20 @@ public class UserController {
             Integer userIdInt = userId.orElse(null);
 
             // セキュリティ JWT生成
-            String accessToken = jwtUtil.generateAccessToken(gestUserForm.gestLoginUserName(),List.of("USER"));
-            String refreshToken = jwtUtil.generateRefreshToken(gestUserForm.gestLoginUserName());
+            String access = jwtUtil.generateAccessToken(gestUserForm.gestLoginUserName(),List.of("USER"));
+            String refresh = jwtUtil.generateRefreshToken(gestUserForm.gestLoginUserName());
 
-            return ResponseEntity.ok(Map.of(
-                "message","User registered successfully",
-                "userId", userIdInt,
-                "accessToken", accessToken,
-                "refreshToken", refreshToken
-            ));
+            // Cookie発行
+            ResponseCookie accessCookie = createAccessCookie(access);
+            ResponseCookie refreshCookie = createRefreshCookie(refresh);
+
+            return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(Map.of("message","User registered successfully",
+                 "userId", userIdInt,
+                 "token",access
+                ));
         }
     }
 
