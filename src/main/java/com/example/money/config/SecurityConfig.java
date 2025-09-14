@@ -15,7 +15,6 @@ import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.ForwardedHeaderFilter;
 
 import java.util.List;
 
@@ -29,23 +28,12 @@ public class SecurityConfig {
     }
 
     @Bean
-    public FilterRegistrationBean<ForwardedHeaderFilter> forwardedHeaderFilter() {
-        FilterRegistrationBean<ForwardedHeaderFilter> filter = new FilterRegistrationBean<>(new ForwardedHeaderFilter());
-        filter.setOrder(Ordered.HIGHEST_PRECEDENCE);
-        return filter;
-    }
-
-    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
 
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS設定を適用
-            .csrf(csrf -> csrf
-                .csrfTokenRepository(customCsrfTokenRepository())
-                .csrfTokenRequestHandler(requestHandler) // ★ リクエストハンドラーを明示的に設定
-                .ignoringRequestMatchers("api/user/signup","/api/user/gestLogin","/api/user/refresh")
-            )
+            .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // セッション使わない
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
