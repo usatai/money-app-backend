@@ -212,7 +212,7 @@ public class UserController {
             .secure(cookieSecure)
             .path("/")
             .domain(cookieDomain)
-            // .sameSite("None")   
+            .sameSite(cookieSameSite)
             .maxAge(Duration.ofMinutes(jwtUtil.getAccessMinutes()))
             .build();
 
