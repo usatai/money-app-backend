@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User,Integer> {
 
     //ユーザーID抽出
-    @Query(value="select user_id from users where user_name = :user_name UNION select user_id from gest_users where user_name = :user_name",nativeQuery = true)
+    @Query(value="select user_id from users where user_name = :user_name",nativeQuery = true)
     Optional<Integer> user_id(@Param("user_name") String user_name);
 
     //同名のユーザーの場合1(TRUE)を返す
