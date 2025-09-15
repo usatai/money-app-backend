@@ -6,11 +6,9 @@ import lombok.Data;
 
 import java.util.Date;
 
-import org.springframework.data.domain.Persistable;
-
 @Entity
 @Data
-@Table(name = "users")
+@Table(name = "user")
 public class User {
 
     @Id

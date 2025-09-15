@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface UserPassword {
-    String message() default "パスワードが正しくありません。";
+    String message() default "ユーザー名もしくはパスワードが正しくありません。";
     Class<?>[] groups() default{};
     Class<? extends Payload>[] payload() default{};
 }

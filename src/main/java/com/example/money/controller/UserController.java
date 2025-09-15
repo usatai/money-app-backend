@@ -65,7 +65,11 @@ public class UserController {
     @PostMapping("signup")
     public ResponseEntity<?> signup(@RequestBody @Validated UserForm userForm, BindingResult userBindingResult, Model model, HttpSession session, RedirectAttributes redirectAttributes) {
         if (userBindingResult.hasErrors()) {
-            return ResponseEntity.badRequest().body(userBindingResult.getAllErrors());
+            List<String> errorMessage = userBindingResult.getAllErrors().stream()
+                    .map(error -> error.getDefaultMessage())
+                    .toList();
+
+            return ResponseEntity.badRequest().body(Map.of("errors",errorMessage));
         } else {
             userService.save(userForm);
             var userId = userService.getUserid(userForm);
@@ -95,13 +99,15 @@ public class UserController {
     //ログイン処理
     @PostMapping("login")
     public ResponseEntity<?> login(@RequestBody @Validated LoginForm loginForm, BindingResult loginBindingResult,HttpServletRequest request,
-    HttpServletResponse response,HttpSession session,RedirectAttributes redirectAttributes) {
+    HttpServletResponse response,RedirectAttributes redirectAttributes) {
 
         if (loginBindingResult.hasErrors()) {
             System.out.println("エラー");
             List<String> errorMessage = loginBindingResult.getAllErrors().stream()
                     .map(error -> error.getDefaultMessage())
                     .toList();
+
+            System.out.println(errorMessage);
 
             return ResponseEntity.badRequest().body(Map.of("errors",errorMessage));
         }
