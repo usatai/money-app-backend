@@ -35,9 +35,10 @@ public class GoalExpenditureController {
         goalExpenditureService.save(goalExpenditureForm,userIdInt);
 
 
-
-
-        return ResponseEntity.ok(Map.of("message","data save successfully"));
+        return ResponseEntity.ok(Map.of(
+                "message","data save successfully",
+                "userId",userIdInt
+            ));
     }
     
     
