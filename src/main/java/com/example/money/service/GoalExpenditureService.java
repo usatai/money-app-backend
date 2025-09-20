@@ -2,6 +2,7 @@ package com.example.money.service;
 
 import java.util.Date;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.example.money.controller.GoalExpenditureForm;
