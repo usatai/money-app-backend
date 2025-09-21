@@ -2,7 +2,6 @@ package com.example.money.service;
 
 import java.util.Date;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.example.money.controller.GoalExpenditureForm;
@@ -18,8 +17,19 @@ public class GoalExpenditureService {
         this.goalExpenditureRepository = goalExpenditureRepository;
     }
 
+    // 目標支出額登録（既存の場合は上書き）
     public void save(GoalExpenditureForm goalExpenditureForm,Integer userIdInt) {
-        goalExpenditureRepository.save(createGoalExpenditure(goalExpenditureForm,userIdInt));
+        GoalExpenditure existingGoalExpenditure = goalExpenditureRepository.findByUser(userIdInt);
+        
+        if (existingGoalExpenditure != null) {
+            // 既存レコードを更新
+            existingGoalExpenditure.setGoal_expenditure(goalExpenditureForm.goal_expenditure());
+            existingGoalExpenditure.setUpdated_at(new Date());
+            goalExpenditureRepository.save(existingGoalExpenditure);
+        } else {
+            // 新規作成
+            goalExpenditureRepository.save(createGoalExpenditure(goalExpenditureForm,userIdInt));
+        }
     }
 
     private GoalExpenditure createGoalExpenditure(GoalExpenditureForm goalExpenditureForm,Integer userIdInt) {
@@ -32,5 +42,10 @@ public class GoalExpenditureService {
         goalExpenditure.setUpdated_at(now);
 
         return goalExpenditure;
+    }
+
+    public boolean firstLoginCheck(Integer userIdInt) {
+        Long count = goalExpenditureRepository.findLoginCheck(userIdInt);
+        return count != null && count > 0;
     }
 }

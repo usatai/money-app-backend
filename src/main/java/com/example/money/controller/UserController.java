@@ -1,6 +1,7 @@
 package com.example.money.controller;
 
 
+import com.example.money.service.GoalExpenditureService;
 import com.example.money.service.UserService;
 
 import io.jsonwebtoken.Claims;
@@ -40,7 +41,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class UserController {
     private final JwtUtil jwtUtil;
     private final UserService userService;
-
+    private final GoalExpenditureService goalExpenditureService;
     private final String cookieDomain;
     private final boolean cookieSecure;
     private final String cookieSameSite;
@@ -49,6 +50,7 @@ public class UserController {
     public UserController (
         JwtUtil jwtUtil,
         UserService userService,
+        GoalExpenditureService goalExpenditureService,
         @Value("${security.cookie.domain}") String cookieDomain,
         @Value("${security.cookie.secure}") boolean cookieSecure,
         @Value("${security.cookie.sameSite}") String cookieSameSite
@@ -59,6 +61,7 @@ public class UserController {
         this.cookieDomain = cookieDomain;
         this.cookieSecure = cookieSecure;
         this.cookieSameSite = cookieSameSite;
+        this.goalExpenditureService = goalExpenditureService;
     }
 
     //新規ユーザー登録
@@ -102,7 +105,6 @@ public class UserController {
     HttpServletResponse response,RedirectAttributes redirectAttributes) {
 
         if (loginBindingResult.hasErrors()) {
-            System.out.println("エラー");
             List<String> errorMessage = loginBindingResult.getAllErrors().stream()
                     .map(error -> error.getDefaultMessage())
                     .toList();
@@ -115,6 +117,8 @@ public class UserController {
         // ユーザー識別情報取得
         var userId = userService.getLoginUserid(loginForm);
         Integer userIdInt = userId.orElse(null);
+
+        boolean loginCheck = goalExpenditureService.firstLoginCheck(userIdInt);
 
         // セキュリティ JWT生成
         String access = jwtUtil.generateAccessToken(loginForm.loginUser_name(),List.of("USER"));
@@ -132,7 +136,8 @@ public class UserController {
             .body(Map.of(
                 "message","Login successful",
                 "userId", userIdInt,
-                "token",access
+                "token",access,
+                "check",loginCheck
             ));
     }
 
