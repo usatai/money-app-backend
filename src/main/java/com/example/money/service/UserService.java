@@ -55,7 +55,7 @@ public class UserService {
 
         User gestUser = new User();
         gestUser.setUser_name(gestLoginUserForm.gestLoginUserName());
-        gestUser.setCreate_date(now);
+        gestUser.setCreated_date(now);
         gestUser.setExpires_at(expires);
         
         return userRepository.save(gestUser);
@@ -69,7 +69,7 @@ public class UserService {
         user.setUser_name(userForm.user_name());
         user.setUser_email(userForm.user_email());
         user.setUser_password(hashedPassword);
-        user.setCreate_date(now);
+        user.setCreated_date(now);
         user.setExpires_at(null);
 
         return user;
