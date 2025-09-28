@@ -14,15 +14,15 @@ public interface LabelRepository extends JpaRepository<Label,Integer> {
     @Transactional
     @Modifying(clearAutomatically = true)
     @Query(value= """
-        delete from label where user_id = :user_id AND label_id = :label_id AND DATE_FORMAT(create_date,'%Y-%m') = :yearMonthSt
+        delete from label where user_id = :user_id AND label_id = :label_id AND TO_CHAR(create_date,'YYYY-MM') = :yearMonthSt
         """
         ,nativeQuery = true)
         void deleteLabel(@Param("user_id") Integer userIdInt, @Param("label_id") Integer label_id, @Param("yearMonthSt")String yearMonthSt);
 
 
-    @Query(value = "select label_id from label where user_id = :user_id AND label_name = :label_name AND DATE_FORMAT(create_date,'%Y-%m') = :yearMonthSt",nativeQuery = true)
+    @Query(value = "select label_id from label where user_id = :user_id AND label_name = :label_name AND TO_CHAR(create_date,'YYYY-MM') = :yearMonthSt",nativeQuery = true)
     Integer searchLabel_id(@Param("user_id") Integer userIdInt,@Param("label_name") String label_name,@Param("yearMonthSt")String yearMonthSt);
 
-    @Query(value= "select exists(select 1 from label where label_name = :label_name and user_id = :user_id and DATE_FORMAT(create_date,'%Y-%m') = DATE_FORMAT(now(),'%Y-%m'))",nativeQuery = true)
+    @Query(value= "select exists(select 1 from label where label_name = :label_name and user_id = :user_id and TO_CHAR(create_date,'YYYY-MM') = TO_CHAR(now(),'YYYY-MM'))",nativeQuery = true)
     Long existsByLabel(@Param("label_name") String label_name,@Param("user_id")Integer user_id);
 }
