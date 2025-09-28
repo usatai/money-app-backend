@@ -1,13 +1,10 @@
 package com.example.money.service;
 
 import com.example.money.controller.GestLoginUserForm;
-import com.example.money.controller.GuestIdSequenceDao;
 import com.example.money.controller.LoginForm;
 import com.example.money.controller.UserForm;
-import com.example.money.model.GestUser;
 import com.example.money.model.User;
 import com.example.money.repository.GestUserRepository;
-import com.example.money.repository.MoneyRepository;
 import com.example.money.repository.UserRepository;
 import com.example.money.security.PasswordUtil;
 
@@ -58,7 +55,7 @@ public class UserService {
 
         User gestUser = new User();
         gestUser.setUser_name(gestLoginUserForm.gestLoginUserName());
-        gestUser.setCreate_date(now);
+        gestUser.setCreated_date(now);
         gestUser.setExpires_at(expires);
         
         return userRepository.save(gestUser);
@@ -72,7 +69,7 @@ public class UserService {
         user.setUser_name(userForm.user_name());
         user.setUser_email(userForm.user_email());
         user.setUser_password(hashedPassword);
-        user.setCreate_date(now);
+        user.setCreated_date(now);
         user.setExpires_at(null);
 
         return user;
