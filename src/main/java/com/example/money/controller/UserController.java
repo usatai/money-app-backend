@@ -118,6 +118,8 @@ public class UserController {
         var userId = userService.getLoginUserid(loginForm);
         Integer userIdInt = userId.orElse(null);
 
+        System.out.println(userIdInt);
+
         boolean loginCheck = goalExpenditureService.firstLoginCheck(userIdInt);
 
         // セキュリティ JWT生成
