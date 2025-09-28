@@ -6,11 +6,9 @@ import lombok.Data;
 
 import java.util.Date;
 
-import org.springframework.data.domain.Persistable;
-
 @Entity
 @Data
-@Table(name = "user")
+@Table(name = "users")
 public class User {
 
     @Id
@@ -33,7 +31,7 @@ public class User {
     @Column(name="create_date")
     private Date create_date;
 
-    @Column(name = "expires_at")
+    @Column(name="expires_at")
     private Date expires_at;
 
 }

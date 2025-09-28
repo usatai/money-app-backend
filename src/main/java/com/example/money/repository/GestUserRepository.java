@@ -15,10 +15,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface GestUserRepository extends JpaRepository<User, Integer> {
 
-    @Query(value = "select user_id from user where user_name = :user_name",nativeQuery = true)
+    @Query(value = "select user_id from users where user_name = :user_name",nativeQuery = true)
     Optional<Integer> gest_user_id(@Param("user_name") String user_name);
 
     @Modifying
-    @Query(value = "delete from user where expires_at is not null and expires_at < :now",nativeQuery = true)
+    @Query(value = "delete from users where expires_at is not null and expires_at < :now",nativeQuery = true)
     int deleteExpired(@Param("now") Date now);
 } 
