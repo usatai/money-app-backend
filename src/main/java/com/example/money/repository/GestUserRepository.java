@@ -1,6 +1,5 @@
 package com.example.money.repository;
 
-import com.example.money.model.GestUser;
 import com.example.money.model.User;
 
 import java.util.Date;

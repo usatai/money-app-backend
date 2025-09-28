@@ -36,6 +36,6 @@ public class Money {
     @Column(name="label_id")
     private int label_id;
 
-    @Column(name="create_date")
-    private Date create_date;
+    @Column(name="created_date")
+    private Date created_date;
 }

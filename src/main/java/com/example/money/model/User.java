@@ -28,8 +28,8 @@ public class User {
     @Column(name="user_password")
     private String user_password;
 
-    @Column(name="create_date")
-    private Date create_date;
+    @Column(name="created_date")
+    private Date created_date;
 
     @Column(name="expires_at")
     private Date expires_at;

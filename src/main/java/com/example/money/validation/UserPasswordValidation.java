@@ -27,7 +27,7 @@ public class UserPasswordValidation implements ConstraintValidator<UserPassword,
 
         constraintValidatorContext.disableDefaultConstraintViolation();
 
-        constraintValidatorContext.buildConstraintViolationWithTemplate("パスワードが正しくありません")
+        constraintValidatorContext.buildConstraintViolationWithTemplate("ユーザー名もしくはパスワードが正しくありません。")
                 .addPropertyNode("loginUser_password")
                 .addConstraintViolation();
 

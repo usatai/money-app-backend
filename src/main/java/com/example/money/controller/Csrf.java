@@ -4,6 +4,8 @@ import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @RestController
 public class Csrf {
     /**
@@ -15,10 +17,10 @@ public class Csrf {
      * @return 現在のCSRFトークン情報（デバッグ用に返すことも可能）
      */
     @GetMapping("/api/user/csrf")
-    public CsrfToken getCsrfToken(CsrfToken token) {
+    public CsrfToken getCsrfToken(HttpServletRequest request) {
         // このメソッドが呼び出されるだけで、CsrfFilterの働きにより
         // XSRF-TOKENクッキーがレスポンスに自動的に付与される。
         // ボディでトークン情報を返す必要は必ずしもないが、デバッグのために返している。
-        return token;
+        return (CsrfToken) request.getAttribute(CsrfToken.class.getName());
     }
 }

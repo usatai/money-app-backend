@@ -35,9 +35,10 @@ public class MoneyService {
         List<Money> moneyTable = moneyrepository.findAll();
         List<Label> labelTable = labelRepository.findAll();
         
-        // TOTALの場合は全体の収支合計のみを返す
+        // TOTALの場合は収入、支出、収支合計をそれぞれ返す
         if (type == IncomeExpenditureType.TOTAL) {
-            int totalAmount = moneyTable.stream()
+            // ユーザーIDと年月でフィルターしたデータを取得
+            List<Money> filteredMoney = moneyTable.stream()
                     .filter(money -> {
                         // ユーザーIDのフィルター
                         boolean userMatch = money.getUser_id() == userIdInt;
@@ -45,7 +46,7 @@ public class MoneyService {
                     })
                     .filter(money -> {
                         // 年月のフィルター
-                        LocalDate createDate = money.getCreate_date().toInstant()
+                        LocalDate createDate = money.getCreated_date().toInstant()
                                 .atZone(ZoneId.systemDefault())
                                 .toLocalDate();
 
@@ -55,15 +56,26 @@ public class MoneyService {
                         boolean dateMatch = createYear == currentYear && createMonth == currentMonth;
                         return dateMatch;
                     })
-                    .mapToInt(money -> {
-                        // 収入の場合は正の値、支出の場合は負の値として扱う
-                        return money.getIncomeExpenditureType() == IncomeExpenditureType.INCOME 
-                            ? money.getMoney_price() 
-                            : -money.getMoney_price();
-                    })
+                    .toList();
+            
+            // 収入の合計を計算
+            int incomeAmount = filteredMoney.stream()
+                    .filter(money -> money.getIncomeExpenditureType() == IncomeExpenditureType.INCOME)
+                    .mapToInt(Money::getMoney_price)
                     .sum();
             
+            // 支出の合計を計算
+            int expenditureAmount = filteredMoney.stream()
+                    .filter(money -> money.getIncomeExpenditureType() == IncomeExpenditureType.EXPENDITURE)
+                    .mapToInt(Money::getMoney_price)
+                    .sum();
+            
+            // 収支合計を計算（収入 - 支出）
+            int totalAmount = incomeAmount - expenditureAmount;
+            
             Map<String, Integer> result = new HashMap<>();
+            result.put("収入", incomeAmount);
+            result.put("支出", expenditureAmount);
             result.put("収支合計", totalAmount);
             return result;
         } else {
@@ -81,7 +93,7 @@ public class MoneyService {
                     })
                     .filter(money -> {
                         // 年月のフィルター
-                        LocalDate createDate = money.getCreate_date().toInstant()
+                        LocalDate createDate = money.getCreated_date().toInstant()
                                 .atZone(ZoneId.systemDefault())
                                 .toLocalDate();
 
@@ -113,7 +125,7 @@ public class MoneyService {
                 .filter(money -> money.getUser_id() == userIdInt)
                 .filter(money -> money.getIncomeExpenditureType() == type)
                 //その抽出したデータのcreate_date(日付)を取得
-                .map(Money::getCreate_date)
+                .map(Money::getCreated_date)
                 .map(money -> money.toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
                 .filter(money -> money.getYear() == currentYear && money.getMonthValue() == currentMonth)
                 .distinct()
@@ -129,7 +141,7 @@ public class MoneyService {
                 .filter(money -> money.getUser_id() == userIdInt)
                 .filter(money -> money.getIncomeExpenditureType() == type)
                 .filter(money ->{
-                    LocalDate createDate = money.getCreate_date().toInstant()
+                    LocalDate createDate = money.getCreated_date().toInstant()
                             .atZone(ZoneId.systemDefault())
                             .toLocalDate();
                     int createYear = createDate.getYear();
@@ -139,7 +151,7 @@ public class MoneyService {
                 })
                 .collect(Collectors.groupingBy(
                         money -> {
-                            LocalDate createDate = money.getCreate_date().toInstant()
+                            LocalDate createDate = money.getCreated_date().toInstant()
                                     .atZone(ZoneId.systemDefault())
                                     .toLocalDate();
                             return createDate.getDayOfMonth();
@@ -154,7 +166,7 @@ public class MoneyService {
         List<Money> moneyTable = moneyrepository.findAll();
         ArrayList<String> moneyDateList = moneyTable.stream()
             .filter(date -> date.getUser_id() == userIdInt)
-            .map(Money::getCreate_date)
+            .map(Money::getCreated_date)
             .map(date -> date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
             .map(date -> date.getYear() + "-"  + date.getMonthValue())
             .distinct()
@@ -171,7 +183,7 @@ public class MoneyService {
         List<Money> moneyTable = moneyrepository.findAll();
         return moneyTable.stream()
                 .filter(date -> date.getUser_id() == userIdInt)
-                .map(Money::getCreate_date)
+                .map(Money::getCreated_date)
                 .map(date -> date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
                 .filter(date -> date.getYear() == currentYear && date.getMonthValue() == currentMonth)
                 .map(date -> date.getYear() + "-" + date.getMonthValue())
@@ -199,7 +211,7 @@ public class MoneyService {
         money.setIncomeExpenditureType(moneyForm.incomeExpenditureType());
         money.setUser_id(userIdInt);
         money.setLabel_id(userGetLabelId(userIdInt,moneyForm.label_name(),sqlDate));
-        money.setCreate_date(sqlDate);
+        money.setCreated_date(sqlDate);
 
         return money;
     }
