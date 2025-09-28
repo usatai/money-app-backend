@@ -32,9 +32,8 @@ import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
-
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/user")
@@ -63,6 +62,7 @@ public class UserController {
         this.cookieSameSite = cookieSameSite;
         this.goalExpenditureService = goalExpenditureService;
     }
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     //新規ユーザー登録
     @PostMapping("signup")
@@ -118,7 +118,8 @@ public class UserController {
         var userId = userService.getLoginUserid(loginForm);
         Integer userIdInt = userId.orElse(null);
 
-        System.out.println(userIdInt);
+        logger.info("取得したユーザーID: {}", userIdInt);
+        System.out.println();
 
         boolean loginCheck = goalExpenditureService.firstLoginCheck(userIdInt);
 
