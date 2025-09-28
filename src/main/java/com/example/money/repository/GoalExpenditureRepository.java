@@ -14,7 +14,7 @@ import org.springframework.data.jpa.repository.Query;
 @Repository
 public interface GoalExpenditureRepository extends JpaRepository<GoalExpenditure,Long>{
     
-    @Query(value = "SELECT COUNT(*) FROM goal_expenditure WHERE user_id = :user_id AND DATE_FORMAT(updated_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')",nativeQuery = true)
+    @Query(value = "SELECT COUNT(*) FROM goal_expenditure WHERE user_id = :user_id AND TO_CHAR(updated_at, 'YYYY-MM') = TO_CHAR(NOW(), 'YYYY-MM')",nativeQuery = true)
     public Long findLoginCheck(@Param("user_id") Integer userIdInt);
     
     @Query(value = "SELECT * FROM goal_expenditure WHERE user_id = :user_id",nativeQuery = true)
