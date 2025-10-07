@@ -23,6 +23,12 @@ public interface LabelRepository extends JpaRepository<Label,Integer> {
     @Query(value = "select label_id from label where user_id = :user_id AND label_name = :label_name AND TO_CHAR(create_date,'YYYY-MM') = :yearMonthSt",nativeQuery = true)
     Integer searchLabel_id(@Param("user_id") Integer userIdInt,@Param("label_name") String label_name,@Param("yearMonthSt")String yearMonthSt);
 
-    @Query(value= "select exists(select 1 from label where label_name = :label_name and user_id = :user_id and TO_CHAR(create_date,'YYYY-MM') = TO_CHAR(now(),'YYYY-MM'))",nativeQuery = true)
-    Long existsByLabel(@Param("label_name") String label_name,@Param("user_id")Integer user_id);
+    @Query(value= "SELECT CASE WHEN EXISTS (" +
+              "  SELECT 1 FROM label " +
+              "  WHERE label_name = :label_name " +
+              "  AND user_id = :user_id " +
+              "  AND DATE_TRUNC('month', create_date) = DATE_TRUNC('month', NOW())" +
+              ") THEN 1 ELSE 0 END",
+       nativeQuery = true)
+    Long existsByLabel(@Param("label_name") String label_name, @Param("user_id") Integer user_id);
 }
