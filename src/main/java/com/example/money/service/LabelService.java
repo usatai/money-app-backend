@@ -74,6 +74,9 @@ public class LabelService {
     }
 
     private Label inputLabel(LabelForm labelForm,Integer userIdInt,YearMonth yearMonth){
+
+        System.out.println("!!!!!!!!!!!!!!! 最新のコードが実行されています !!!!!!!!!!!!!!! " + new java.util.Date());
+
         Label label = new Label();
         Date now = new Date();
 
