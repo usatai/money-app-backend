@@ -31,7 +31,7 @@ public class Label {
     private Date create_date;
 
     @Enumerated(EnumType.STRING)
-    @Column(name="income_expenditure_type")
+    @Column(name="income_expenditure_type",columnDefinition = "transaction_type")
     private IncomeExpenditureType incomeExpenditureType;
 
 }
