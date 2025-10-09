@@ -214,7 +214,7 @@ public class UserController {
         return ResponseEntity.ok()
             .header(HttpHeaders.SET_COOKIE, clear1.toString())
             .header(HttpHeaders.SET_COOKIE, clear2.toString())
-            .build();
+            .body(Map.of("message","success loggout"));
     }
     
 
