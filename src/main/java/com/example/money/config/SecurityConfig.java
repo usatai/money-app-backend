@@ -63,7 +63,7 @@ public class SecurityConfig {
     private CsrfTokenRepository customCsrfTokenRepository() {
         CookieCsrfTokenRepository repo = CookieCsrfTokenRepository.withHttpOnlyFalse();
         repo.setCookieCustomizer(cookie -> {
-            cookie.sameSite("None");
+            cookie.sameSite("Lax");
             cookie.secure(true);
         });
         return repo;
